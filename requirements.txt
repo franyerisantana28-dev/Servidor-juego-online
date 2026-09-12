@@ -1,0 +1,2 @@
+# Requerimientos para Servidor Multijugador Isla Salvaje en Render
+urllib3>=2.0.0

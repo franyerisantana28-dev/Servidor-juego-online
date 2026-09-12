@@ -1,4 +1,4 @@
-﻿"""
+"""
 Isla Salvaje - High Performance Multiplayer REST & State Sync Server
 Provides online persistence for Unreal Engine mobile clients.
 """
@@ -7,6 +7,7 @@ import json
 import sqlite3
 import os
 import urllib.parse
+from database import init_db
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "IslaSalvaje_World.db")
 
@@ -31,8 +32,14 @@ class IslaSalvajeServer(BaseHTTPRequestHandler):
         conn = get_db()
         cursor = conn.cursor()
 
-        if path == "/api/status":
-            self._send_json({"status": "ONLINE", "server_name": "Isla Salvaje 01", "max_players": 100, "region": "SA-Brazil"})
+        if path == "/" or path == "/api/status" or path == "/healthz":
+            self._send_json({
+                "status": "ONLINE",
+                "service": "Isla Salvaje Multiplayer Server",
+                "server_name": "Isla Salvaje 01",
+                "max_players": 100,
+                "region": "SA-Brazil"
+            })
         
         elif path == "/api/classes":
             cursor.execute("SELECT * FROM class_definitions;")
@@ -103,7 +110,11 @@ class IslaSalvajeServer(BaseHTTPRequestHandler):
 
         conn.close()
 
-def run(port=8080):
+def run(port=None):
+    if port is None:
+        port = int(os.environ.get("PORT", 8080))
+    print("[IslaSalvajeServer] Inicializando base de datos SQLite WAL...")
+    init_db()
     server = HTTPServer(('0.0.0.0', port), IslaSalvajeServer)
     print(f"[IslaSalvajeServer] Multiplayer Server running on port {port}...")
     server.serve_forever()
